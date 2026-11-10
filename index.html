@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Persetujuan akun · biniNotes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#F7F1F4;color:#111827;font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  main{max-width:440px;margin:0 auto;padding:24px 20px 40px;display:flex;flex-direction:column;gap:20px}
+  .atas{display:flex;align-items:center;gap:10px}
+  .logo{width:36px;height:36px;border-radius:10px;background:#A63A64;display:flex;align-items:center;justify-content:center}
+  .merek{font-size:17px;font-weight:700}
+  .label-atas{margin-left:auto;font-size:13px;color:#4B5563}
+  .kartu{background:#fff;border:1px solid #EDE4E8;border-radius:24px;padding:24px 20px;display:flex;flex-direction:column;gap:20px}
+  .tengah{align-items:center;text-align:center;gap:4px;padding:32px 20px 28px}
+  h1{margin:0 0 6px;font-size:24px;letter-spacing:-.02em;font-weight:700}
+  .tengah h1{font-size:22px}
+  p{margin:0;font-size:15px;line-height:1.5;color:#4B5563}
+  .data{border-radius:16px;padding:4px 16px;background:#FDF8FA;border:1px solid #EDE4E8}
+  .baris{display:flex;justify-content:space-between;gap:12px;padding:12px 0;font-size:14px}
+  .baris+.baris{border-top:1px solid #EDE4E8}
+  .baris span:first-child{color:#4B5563}
+  .baris span:last-child{font-weight:600;text-align:right}
+  .tombol{display:flex;flex-direction:column;gap:12px}
+  button{height:52px;width:100%;border-radius:12px;font:600 16px 'Inter',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
+  button:focus-visible{outline:3px solid rgba(166,58,100,.35);outline-offset:2px}
+  button:disabled{opacity:.7;cursor:default}
+  .utama{border:0;color:#fff}
+  .lain{border:1px solid #D4D4D8;background:#fff}
+  .catatan{font-size:13px;text-align:center}
+  .ikon{width:80px;height:80px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:16px}
+  .ikon div{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+  .chip{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 12px;border-radius:999px;font-size:13px;font-weight:600;align-self:flex-start}
+  @keyframes putar{to{transform:rotate(360deg)}}
+  .putar{animation:putar .8s linear infinite}
+  [hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main>
+  <div class="atas">
+    <div class="logo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg></div>
+    <span class="merek">biniNotes</span>
+    <span class="label-atas">Persetujuan akun</span>
+  </div>
+
+  <!-- memuat -->
+  <section id="memuat" class="kartu tengah">
+    <svg class="putar" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#A63A64" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-6.2-8.6"/></svg>
+    <p style="margin-top:12px">Memuat data pendaftar…</p>
+  </section>
+
+  <!-- konfirmasi -->
+  <section id="konfirmasi" class="kartu" hidden>
+    <span id="chip" class="chip" hidden></span>
+    <div>
+      <h1 id="judul"></h1>
+      <p id="ket"></p>
+    </div>
+    <div class="data">
+      <div class="baris"><span>Nama</span><span id="nama"></span></div>
+      <div class="baris"><span>Nomor telepon</span><span id="hp"></span></div>
+      <div class="baris"><span>Waktu daftar</span><span id="waktu"></span></div>
+    </div>
+    <div class="tombol">
+      <button type="button" id="btnUtama" class="utama"></button>
+      <button type="button" id="btnLain" class="lain"></button>
+    </div>
+  </section>
+  <p id="berlaku" class="catatan" hidden></p>
+
+  <!-- hasil / galat -->
+  <section id="hasil" class="kartu tengah" hidden>
+    <div class="ikon" id="ikonLuar"><div id="ikonDalam"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path id="ikonPath"/></svg></div></div>
+    <h1 id="hasilJudul" role="status"></h1>
+    <p id="hasilKet"></p>
+  </section>
+  <p id="bolehTutup" class="catatan" hidden>Halaman ini boleh ditutup.</p>
+</main>
+
+<script>
+(function () {
+  var FUNGSI = 'https://jjrlefyzykzrxakqbpxx.supabase.co/functions/v1/persetujuan-akun';
+  var q = new URLSearchParams(location.search);
+  var token = q.get('t') || '';
+  var aksi = q.get('a') === 'tolak' ? 'tolak' : 'setujui';
+  var data = null, sibuk = false;
+  var $ = function (id) { return document.getElementById(id); };
+
+  var CENTANG = 'M5 12.5l4.5 4.5L19 7.5', SILANG = 'M7 7l10 10M17 7L7 17', SERU = 'M12 7v6M12 17h.01';
+  var SPINNER = '<svg class="putar" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-6.2-8.6"/></svg>';
+
+  function tampil(id) {
+    ['memuat', 'konfirmasi', 'hasil', 'berlaku', 'bolehTutup'].forEach(function (k) { $(k).hidden = true; });
+    id.forEach(function (k) { $(k).hidden = false; });
+  }
+
+  function hasil(warna, ikon, judul, ket, tutup) {
+    var bg = { hijau: ['#E7F4EC', '#217A4F'], merah: ['#FDECEC', '#B42318'], abu: ['#F1F2F4', '#4B5563'] }[warna];
+    $('ikonLuar').style.background = bg[0];
+    $('ikonDalam').style.background = bg[1];
+    $('ikonPath').setAttribute('d', ikon);
+    $('hasilJudul').textContent = judul;
+    $('hasilKet').textContent = ket;
+    tampil(tutup ? ['hasil', 'bolehTutup'] : ['hasil']);
+  }
+
+  function galat(kode) {
+    var pesan = {
+      tautan_tidak_valid: ['Tautan tidak valid', 'Tautan ini tidak dikenali. Buka lagi tombol dari email persetujuan.'],
+      tautan_kedaluwarsa: ['Tautan sudah kedaluwarsa', 'Tautan persetujuan hanya berlaku 7 hari. Status akun bisa diubah langsung di Supabase (tabel profiles, kolom status_akun).'],
+      akun_sudah_dihapus: ['Akun sudah tidak ada', 'Akun pendaftar ini sudah dihapus.'],
+      jaringan: ['Tidak dapat terhubung', 'Periksa koneksi internet lalu muat ulang halaman ini.']
+    }[kode] || ['Terjadi kesalahan', 'Coba muat ulang halaman ini beberapa saat lagi.'];
+    hasil('abu', SERU, pesan[0], pesan[1], false);
+  }
+
+  function panggil(isi) {
+    return fetch(FUNGSI, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(isi) })
+      .then(function (r) { return r.json().catch(function () { return { error: 'server' }; }); }, function () { return { error: 'jaringan' }; });
+  }
+
+  function render() {
+    var setuju = aksi === 'setujui';
+    var status = data.status;
+    var chip = $('chip');
+    if (status === 'aktif' || status === 'ditolak') {
+      chip.hidden = false;
+      chip.textContent = status === 'aktif' ? 'Saat ini: sudah disetujui' : 'Saat ini: ditolak';
+      chip.style.background = status === 'aktif' ? '#E7F4EC' : '#FDECEC';
+      chip.style.color = status === 'aktif' ? '#17603C' : '#912018';
+    } else chip.hidden = true;
+
+    $('judul').textContent = setuju ? 'Setujui pendaftaran ini?' : 'Tolak pendaftaran ini?';
+    $('ket').textContent = setuju
+      ? 'Akun akan aktif sebagai admin keluarga baru dan bisa memakai semua menu. Pendaftar mendapat notifikasi di HP-nya.'
+      : 'Akun tidak bisa memakai menu apa pun. Pendaftar melihat keterangan bahwa pendaftarannya tidak disetujui.';
+    $('nama').textContent = data.nama;
+    $('hp').textContent = data.hp;
+    $('waktu').textContent = data.waktu;
+
+    var utama = $('btnUtama'), lain = $('btnLain');
+    utama.style.background = setuju ? '#217A4F' : '#B42318';
+    utama.innerHTML = sibuk ? SPINNER + 'Memproses…' : (setuju ? 'Ya, setujui' : 'Ya, tolak');
+    utama.disabled = lain.disabled = sibuk;
+    lain.textContent = setuju ? 'Tolak saja' : 'Setujui saja';
+    lain.style.color = setuju ? '#B42318' : '#217A4F';
+
+    var tgl = new Date(data.kedaluwarsa).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+    $('berlaku').textContent = 'Tautan berlaku sampai ' + tgl + '. Keputusan masih bisa diubah selama tautan berlaku.';
+    tampil(['konfirmasi', 'berlaku']);
+  }
+
+  $('btnLain').addEventListener('click', function () {
+    if (sibuk) return;
+    aksi = aksi === 'setujui' ? 'tolak' : 'setujui';
+    render();
+  });
+
+  $('btnUtama').addEventListener('click', function () {
+    if (sibuk) return;
+    sibuk = true; render();
+    panggil({ aksi: 'putuskan', t: token, keputusan: aksi }).then(function (r) {
+      sibuk = false;
+      if (!r || r.error) { galat(r && r.error); return; }
+      if (r.status === 'aktif') {
+        hasil('hijau', CENTANG, 'Akun disetujui', r.nama + ' sekarang bisa memakai biniNotes. Notifikasi sudah dikirim ke HP-nya.', true);
+      } else {
+        hasil('merah', SILANG, 'Pendaftaran ditolak', r.nama + ' tidak bisa memakai biniNotes. Kalau berubah pikiran, buka lagi email tadi dan pilih Setujui selama tautannya masih berlaku.', true);
+      }
+    });
+  });
+
+  if (!/^[0-9a-f]{64}$/.test(token)) { galat('tautan_tidak_valid'); return; }
+  panggil({ aksi: 'lihat', t: token }).then(function (r) {
+    if (!r || r.error) { galat(r && r.error); return; }
+    data = r; render();
+  });
+})();
+</script>
+</body>
+</html>
