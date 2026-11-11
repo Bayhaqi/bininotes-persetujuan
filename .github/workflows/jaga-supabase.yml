@@ -1,0 +1,48 @@
+# Menjaga project Supabase biniNotes tetap aktif (paket Free di-pause setelah 7 hari tanpa aktivitas).
+# Jalan otomatis tanggal 1, 7, 13, 19, 25, 31 tiap bulan jam 08.00 WIB (jarak maksimal 6 hari),
+# dan bisa dijalankan manual dari tab Actions -> "Jaga Supabase" -> Run workflow.
+name: Jaga Supabase
+
+on:
+  schedule:
+    - cron: "0 1 */6 * *"   # 01:00 UTC = 08:00 WIB
+  workflow_dispatch:
+
+permissions:
+  contents: write   # untuk mencatat tanggal terakhir (supaya jadwal GitHub tidak ikut dimatikan)
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Query ringan ke database
+        env:
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          if [ -z "$SUPABASE_ANON_KEY" ]; then
+            echo "Secret SUPABASE_ANON_KEY belum diisi"; exit 1
+          fi
+          for coba in 1 2 3; do
+            kode=$(curl -s -o hasil.txt -w "%{http_code}" -X POST \
+              "https://jjrlefyzykzrxakqbpxx.supabase.co/rest/v1/rpc/ping" \
+              -H "apikey: $SUPABASE_ANON_KEY" \
+              -H "Content-Type: application/json" \
+              -d '{}')
+            echo "Percobaan $coba: HTTP $kode - $(cat hasil.txt)"
+            if [ "$kode" = "200" ]; then exit 0; fi
+            sleep 20
+          done
+          echo "Database tidak menjawab"; exit 1
+
+      - name: Ambil isi repo
+        uses: actions/checkout@v4
+
+      - name: Catat tanggal terakhir dijaga
+        run: |
+          date -u -d "+7 hours" "+%Y-%m-%d %H:%M WIB" > terakhir-dijaga.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add terakhir-dijaga.txt
+          git commit -m "Jaga Supabase: $(cat terakhir-dijaga.txt)" || echo "Tidak ada perubahan"
+          git push
